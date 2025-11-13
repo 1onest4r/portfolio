@@ -1,11 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Interactive Portfolio</title>
 </head>
-<body>
-    
+<body data-page="home">
+  <div id="canvas-container"></div>
+  
+  <div class="content">
+    <section>
+      <h1>Creative Developer</h1>
+      <p>Crafting immersive digital experiences through code and creativity</p>
+      <button class="cta-button" data-action="explore">Explore Work</button>
+      <div class="scroll-indicator">↓ Scroll to discover</div>
+    </section>
+
+    <section>
+      <h2>Featured Projects</h2>
+      <div class="project-grid">
+        <div class="project-card">
+          <h3>Project Alpha</h3>
+          <p>Interactive 3D experience</p>
+        </div>
+        <div class="project-card">
+          <h3>Project Beta</h3>
+          <p>WebGL animation showcase</p>
+        </div>
+        <div class="project-card">
+          <h3>Project Gamma</h3>
+          <p>Immersive storytelling</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Let's Connect</h2>
+      <p>Ready to create something amazing together?</p>
+      <button class="cta-button">Get In Touch</button>
+    </section>
+  </div>
+
+  <script type="module" src="/main.js"></script>
 </body>
 </html>
