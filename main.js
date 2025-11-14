@@ -1,15 +1,14 @@
 import './style.css'
 import * as THREE from 'three'
 
-const pageType = document.body.dataset.page || 'home';
-
 let scene, camera, renderer, particles, scrollY = 0;
 const geometries = [];
 const imagePlanes = [];
 let currentSection = 0;
+let currentPage = 'home';
 
 const exploreState = {
-  enabled: pageType === 'explore',
+  enabled: false,
   activeIndex: 0,
   spacing: 2.2,
   depth: -2,
@@ -19,11 +18,9 @@ const exploreState = {
   lastScrollAt: 0,
   isTransitioning: false,
   transition: null,
-  navigationQueued: false,
   lastDirection: 0,
-  transitionCover: null,
   intro: null,
-  ready: pageType !== 'explore'
+  ready: false
 };
 
 const baseScale = new THREE.Vector3(1, 1, 1);
@@ -32,7 +29,7 @@ const tmpVec3A = new THREE.Vector3();
 const tmpVec3B = new THREE.Vector3();
 const tmpVec3C = new THREE.Vector3();
 
-// Portfolio works - Replace these URLs with your actual project images
+// Portfolio works
 const portfolioWorks = [
   {
     title: "Project Alpha",
@@ -107,10 +104,6 @@ function init() {
   
   camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
   camera.position.z = 5;
-  if (exploreState.enabled) {
-    camera.position.copy(exploreState.cameraPosition);
-    camera.lookAt(exploreState.cameraLookAt);
-  }
 
   renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -150,7 +143,7 @@ function init() {
     geometries.push(mesh);
   }
 
-  // Create image planes for portfolio works
+  // Create image planes
   createImagePlanes();
 
   // Create particle system
@@ -186,9 +179,7 @@ function init() {
   scene.add(pointLight2);
 
   window.addEventListener('resize', onWindowResize);
-  if (pageType === 'home') {
-    window.addEventListener('scroll', onScroll);
-  }
+  window.addEventListener('scroll', onScroll);
   window.addEventListener('mousemove', onMouseMove);
 }
 
@@ -197,12 +188,10 @@ function createImagePlanes() {
   ensurePlaceholderWorks();
   
   portfolioWorks.forEach((work, index) => {
-    // Load texture
     const texture = work.placeholder
       ? createPlaceholderTexture(work)
       : textureLoader.load(work.image);
     
-    // Create plane geometry - closer view, smaller size
     const planeGeometry = new THREE.PlaneGeometry(1.5, 2.5);
     const planeMaterial = new THREE.MeshStandardMaterial({
       map: texture,
@@ -213,24 +202,18 @@ function createImagePlanes() {
     
     const plane = new THREE.Mesh(planeGeometry, planeMaterial);
     
-    // Position planes closer to camera in a tighter arrangement
     const angle = (index / portfolioWorks.length) * Math.PI * 2;
-    const radius = 3.0; // Much closer to camera
+    const radius = 3.0;
     
-    plane.position.x = Math.cos(angle) * radius * 2;
+    plane.position.x = Math.cos(angle) * radius * 3.7;
     plane.position.z = Math.sin(angle) * radius - 4;
-    plane.position.y = (Math.random() - 2.5) * 2;
-    
-    // Make planes face the camera
-    // plane.lookAt(camera.position);
+    plane.position.y = (Math.random() - 2.5) * 1;
     
     plane.userData = {
       originalPosition: plane.position.clone(),
       originalRotation: plane.rotation.clone(),
       originalScale: plane.scale.clone(),
       index: index,
-      targetOpacity: 1,
-      currentOpacity: 1,
       work: work,
       hovered: false,
       linePosition: new THREE.Vector3(),
@@ -251,10 +234,7 @@ function createImagePlanes() {
     imagePlanes.push(plane);
   });
   
-  // Add click and hover detection
   setupInteraction();
-
-  initializeExploreLayoutIfNeeded();
 }
 
 function setupInteraction() {
@@ -285,12 +265,10 @@ function setupInteraction() {
     raycaster.setFromCamera(mouse, camera);
     const intersects = raycaster.intersectObjects(imagePlanes);
     
-    // Reset all planes
     imagePlanes.forEach(plane => {
       plane.userData.hovered = false;
     });
     
-    // Set hovered state
     if (intersects.length > 0) {
       document.body.style.cursor = 'pointer';
       intersects[0].object.userData.hovered = true;
@@ -303,115 +281,43 @@ function setupInteraction() {
   window.addEventListener('mousemove', onMouseMove);
 }
 
-function setupUIBindings() {
-  if (pageType === 'home') {
-    const exploreButton = document.querySelector('[data-action="explore"]');
-    if (exploreButton) {
-      exploreButton.addEventListener('click', (event) => {
-        event.preventDefault();
-        if (exploreState.isTransitioning || imagePlanes.length === 0) return;
-        startExploreTransition();
-      });
-    }
+// ============================================
+// SPA NAVIGATION SYSTEM
+// ============================================
 
-    if (!exploreState.transitionCover) {
-      const cover = document.createElement('div');
-      cover.className = 'page-transition-cover';
-      document.body.appendChild(cover);
-      exploreState.transitionCover = cover;
-    }
-  }
-
-  const backButton = document.querySelector('[data-action="back-home"]');
-  if (backButton) {
-    backButton.addEventListener('click', (event) => {
-      event.preventDefault();
-      window.location.href = './index.html';
-    });
+function navigateTo(page) {
+  if (exploreState.isTransitioning) return;
+  if (currentPage === page) return;
+  
+  if (page === 'explore') {
+    transitionToExplore();
+  } else if (page === 'home') {
+    transitionToHome();
   }
 }
 
-function initializeExploreLayoutIfNeeded() {
-  if (!exploreState.enabled || imagePlanes.length === 0) return;
-
-  exploreState.lastDirection = 0;
-
-  if (!exploreState.transitionCover) {
-    const cover = document.createElement('div');
-    cover.className = 'page-transition-cover is-active';
-    document.body.appendChild(cover);
-    exploreState.transitionCover = cover;
-  } else {
-    exploreState.transitionCover.classList.add('is-active');
-  }
-
-  prepareExploreLayout();
-  setupExploreIntro();
-
-  camera.position.copy(exploreState.cameraPosition);
-  camera.lookAt(exploreState.cameraLookAt);
-
-  if (pageType === 'explore') {
-    window.addEventListener('wheel', handleExploreWheel, { passive: false });
-    window.addEventListener('keydown', handleExploreKeydown);
-  }
-}
-
-function setupExploreIntro() {
-  const now = performance.now();
-  const delayStep = 110;
-  const verticalSwing = 1.6;
-  const depthOffset = 1.3;
-
-  exploreState.intro = {
-    start: now,
-    duration: 900,
-    delayStep,
-    done: false
-  };
-
-  exploreState.ready = false;
-
-  imagePlanes.forEach((plane, idx) => {
-    plane.userData.introDelay = idx * delayStep;
-
-    if (!plane.userData.linePosition) {
-      plane.userData.linePosition = new THREE.Vector3();
-    }
-
-    const wobble = idx % 2 === 0 ? 1 : -1;
-    plane.userData.introStartPosition = plane.userData.linePosition
-      .clone()
-      .add(new THREE.Vector3(wobble * 1.1, wobble * verticalSwing, -depthOffset));
-    plane.userData.introStartScale = plane.userData.lineScale * 0.7;
-    plane.userData.introStartOpacity = 0;
-
-    plane.position.copy(plane.userData.introStartPosition);
-    plane.scale.setScalar(plane.userData.introStartScale);
-    plane.material.opacity = plane.userData.introStartOpacity;
-    plane.material.needsUpdate = true;
-  });
-}
-
-function startExploreTransition() {
+function transitionToExplore() {
   exploreState.enabled = true;
   exploreState.isTransitioning = true;
-  exploreState.navigationQueued = false;
   exploreState.activeIndex = 0;
   exploreState.lastDirection = 0;
+  currentPage = 'explore';
+
+  // Update DOM
+  document.querySelector('[data-page="home"]').style.display = 'none';
+  document.querySelector('[data-page="explore"]').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+  scrollY = 0;
+  window.scrollTo(0, 0);
 
   prepareExploreLayout();
 
   exploreState.transition = {
     start: performance.now(),
-    duration: 1300,
+    duration: 1200,
     fromCameraPosition: camera.position.clone(),
     fromCameraRotation: camera.rotation.clone()
   };
-
-  if (exploreState.transitionCover) {
-    exploreState.transitionCover.classList.remove('is-active');
-  }
 
   imagePlanes.forEach((plane) => {
     plane.userData.transitionStartPosition = plane.position.clone();
@@ -419,7 +325,55 @@ function startExploreTransition() {
     plane.userData.transitionStartScale = plane.scale.clone();
     plane.userData.transitionStartOpacity = plane.material.opacity;
   });
+
+  // Setup wheel and keyboard for explore mode
+  window.addEventListener('wheel', handleExploreWheel, { passive: false });
+  window.addEventListener('keydown', handleExploreKeydown);
 }
+
+function transitionToHome() {
+  exploreState.enabled = false;
+  exploreState.isTransitioning = true;
+  currentPage = 'home';
+
+  // Update DOM
+  document.querySelector('[data-page="explore"]').style.display = 'none';
+  document.querySelector('[data-page="home"]').style.display = 'block';
+  document.body.style.overflow = '';
+
+  exploreState.transition = {
+    start: performance.now(),
+    duration: 1200,
+    fromCameraPosition: camera.position.clone(),
+    fromCameraRotation: camera.rotation.clone(),
+    toHome: true
+  };
+
+  imagePlanes.forEach((plane) => {
+    plane.userData.transitionStartPosition = plane.position.clone();
+    plane.userData.transitionStartRotation = plane.rotation.clone();
+    plane.userData.transitionStartScale = plane.scale.clone();
+    plane.userData.transitionStartOpacity = plane.material.opacity;
+  });
+
+  // Remove explore event listeners
+  window.removeEventListener('wheel', handleExploreWheel);
+  window.removeEventListener('keydown', handleExploreKeydown);
+}
+
+function setupNavigation() {
+  document.querySelectorAll('[data-navigate]').forEach(button => {
+    button.addEventListener('click', (e) => {
+      e.preventDefault();
+      const target = button.getAttribute('data-navigate');
+      navigateTo(target);
+    });
+  });
+}
+
+// ============================================
+// EXPLORE MODE FUNCTIONS
+// ============================================
 
 function prepareExploreLayout() {
   if (imagePlanes.length === 0) return;
@@ -447,37 +401,7 @@ function prepareExploreLayout() {
   });
 }
 
-function snapToExploreLayout() {
-  imagePlanes.forEach((plane) => {
-    plane.position.copy(plane.userData.linePosition);
-    plane.rotation.copy(plane.userData.lineRotation);
-    plane.scale.setScalar(plane.userData.lineScale);
-
-    if (Math.abs(plane.material.opacity - plane.userData.lineOpacity) > 0.001) {
-      plane.material.opacity = plane.userData.lineOpacity;
-      plane.material.needsUpdate = true;
-    }
-  });
-
-  camera.position.copy(exploreState.cameraPosition);
-  camera.lookAt(exploreState.cameraLookAt);
-}
-
-function maintainExploreLayout(now) {
-  if (exploreState.intro && !exploreState.ready) {
-    if (playExploreIntro(now)) {
-      exploreState.ready = true;
-      exploreState.intro = null;
-      snapToExploreLayout();
-      if (exploreState.transitionCover) {
-        requestAnimationFrame(() => {
-          exploreState.transitionCover.classList.remove('is-active');
-        });
-      }
-    }
-    return;
-  }
-
+function maintainExploreLayout() {
   imagePlanes.forEach((plane) => {
     plane.position.lerp(plane.userData.linePosition, 0.18);
     plane.rotation.x = THREE.MathUtils.lerp(plane.rotation.x, plane.userData.lineRotation.x, 0.18);
@@ -500,48 +424,7 @@ function maintainExploreLayout(now) {
   camera.lookAt(exploreState.cameraLookAt);
 }
 
-function playExploreIntro(now) {
-  if (!exploreState.intro) return true;
-
-  const { start, duration } = exploreState.intro;
-  let allComplete = true;
-
-  imagePlanes.forEach((plane) => {
-    const delay = plane.userData.introDelay || 0;
-    const elapsed = now - start - delay;
-    const clamped = Math.min(1, Math.max(0, elapsed / duration));
-
-    if (clamped < 1) {
-      allComplete = false;
-    }
-
-    const eased = easeOutQuint(clamped);
-
-    if (plane.userData.introStartPosition) {
-      plane.position.copy(
-        tmpVec3B
-          .copy(plane.userData.introStartPosition)
-          .lerp(plane.userData.linePosition, eased)
-      );
-    }
-
-    const startScale = plane.userData.introStartScale ?? plane.userData.lineScale;
-    const targetScale = plane.userData.lineScale;
-    plane.scale.setScalar(THREE.MathUtils.lerp(startScale, targetScale, eased));
-
-    const startOpacity = plane.userData.introStartOpacity ?? 0;
-    const targetOpacity = plane.userData.lineOpacity;
-    const opacity = THREE.MathUtils.lerp(startOpacity, targetOpacity, eased);
-    if (Math.abs(opacity - plane.material.opacity) > 0.0001) {
-      plane.material.opacity = opacity;
-      plane.material.needsUpdate = true;
-    }
-  });
-
-  return allComplete;
-}
-
-function updateExploreTransition(now) {
+function updateTransition(now) {
   const { transition } = exploreState;
   if (!transition) return;
 
@@ -549,52 +432,59 @@ function updateExploreTransition(now) {
   const progress = Math.min(1, elapsed / transition.duration);
   const eased = easeInOutCubic(progress);
 
-  camera.position.copy(tmpVec3A.copy(transition.fromCameraPosition).lerp(exploreState.cameraPosition, eased));
-  camera.lookAt(exploreState.cameraLookAt);
+  if (transition.toHome) {
+    // Transitioning back to home
+    const targetPos = new THREE.Vector3(0, 0, 5);
+    camera.position.copy(tmpVec3A.copy(transition.fromCameraPosition).lerp(targetPos, eased));
+    camera.lookAt(0, 0, 0);
 
-  imagePlanes.forEach((plane) => {
-    if (plane.userData.transitionStartPosition) {
+    imagePlanes.forEach((plane) => {
       plane.position.copy(
-        tmpVec3B.copy(plane.userData.transitionStartPosition).lerp(plane.userData.linePosition, eased)
+        tmpVec3B.copy(plane.userData.transitionStartPosition).lerp(plane.userData.originalPosition, eased)
       );
-    }
-
-    if (plane.userData.transitionStartRotation) {
-      plane.rotation.set(
-        THREE.MathUtils.lerp(plane.userData.transitionStartRotation.x, plane.userData.lineRotation.x, eased),
-        THREE.MathUtils.lerp(plane.userData.transitionStartRotation.y, plane.userData.lineRotation.y, eased),
-        THREE.MathUtils.lerp(plane.userData.transitionStartRotation.z, plane.userData.lineRotation.z, eased)
-      );
-    }
-
-    if (plane.userData.transitionStartScale) {
+      
       const startScale = plane.userData.transitionStartScale.x;
-      const targetScale = plane.userData.lineScale;
-      plane.scale.setScalar(THREE.MathUtils.lerp(startScale, targetScale, eased));
-    }
+      plane.scale.setScalar(THREE.MathUtils.lerp(startScale, 1, eased));
 
-    const targetOpacity = plane.userData.lineOpacity;
-    const startOpacity = plane.userData.transitionStartOpacity ?? plane.material.opacity;
-    plane.material.opacity = THREE.MathUtils.lerp(startOpacity, targetOpacity, eased);
-    plane.material.needsUpdate = true;
-  });
+      plane.material.opacity = THREE.MathUtils.lerp(plane.userData.transitionStartOpacity, 1, eased);
+      plane.material.needsUpdate = true;
+    });
+  } else {
+    // Transitioning to explore
+    camera.position.copy(tmpVec3A.copy(transition.fromCameraPosition).lerp(exploreState.cameraPosition, eased));
+    camera.lookAt(exploreState.cameraLookAt);
+
+    imagePlanes.forEach((plane) => {
+      if (plane.userData.transitionStartPosition) {
+        plane.position.copy(
+          tmpVec3B.copy(plane.userData.transitionStartPosition).lerp(plane.userData.linePosition, eased)
+        );
+      }
+
+      if (plane.userData.transitionStartRotation) {
+        plane.rotation.set(
+          THREE.MathUtils.lerp(plane.userData.transitionStartRotation.x, plane.userData.lineRotation.x, eased),
+          THREE.MathUtils.lerp(plane.userData.transitionStartRotation.y, plane.userData.lineRotation.y, eased),
+          THREE.MathUtils.lerp(plane.userData.transitionStartRotation.z, plane.userData.lineRotation.z, eased)
+        );
+      }
+
+      if (plane.userData.transitionStartScale) {
+        const startScale = plane.userData.transitionStartScale.x;
+        const targetScale = plane.userData.lineScale;
+        plane.scale.setScalar(THREE.MathUtils.lerp(startScale, targetScale, eased));
+      }
+
+      const targetOpacity = plane.userData.lineOpacity;
+      const startOpacity = plane.userData.transitionStartOpacity ?? plane.material.opacity;
+      plane.material.opacity = THREE.MathUtils.lerp(startOpacity, targetOpacity, eased);
+      plane.material.needsUpdate = true;
+    });
+  }
 
   if (progress >= 1) {
     exploreState.isTransitioning = false;
     exploreState.transition = null;
-    snapToExploreLayout();
-
-    if (pageType === 'home' && !exploreState.navigationQueued) {
-      exploreState.navigationQueued = true;
-      if (exploreState.transitionCover) {
-        requestAnimationFrame(() => {
-          exploreState.transitionCover.classList.add('is-active');
-        });
-      }
-      setTimeout(() => {
-        window.location.href = './explore.html';
-      }, 400);
-    }
   }
 }
 
@@ -636,6 +526,10 @@ function handleExploreKeydown(event) {
   }
 }
 
+// ============================================
+// HOME MODE FUNCTIONS
+// ============================================
+
 function updateHomeCamera(scrollProgress) {
   camera.position.z = 5 - scrollProgress * 10;
   camera.position.y = scrollProgress * 3;
@@ -664,6 +558,10 @@ function updateFloatingPlanes() {
   });
 }
 
+// ============================================
+// SHARED UPDATE FUNCTIONS
+// ============================================
+
 function updateBackgroundGeometries() {
   geometries.forEach(mesh => {
     mesh.rotation.x += mesh.userData.rotationSpeed;
@@ -685,10 +583,6 @@ function easeInOutCubic(t) {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 }
 
-function easeOutQuint(t) {
-  return 1 - Math.pow(1 - t, 5);
-}
-
 function onWindowResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
@@ -696,12 +590,12 @@ function onWindowResize() {
 }
 
 function onScroll() {
-  scrollY = window.scrollY;
-  
-  // Determine which section we're in (0 = hero, 1 = portfolio, 2 = contact)
-  const windowHeight = window.innerHeight;
-  const section = Math.floor(scrollY / windowHeight);
-  currentSection = Math.min(section, 2);
+  if (currentPage === 'home') {
+    scrollY = window.scrollY;
+    const windowHeight = window.innerHeight;
+    const section = Math.floor(scrollY / windowHeight);
+    currentSection = Math.min(section, 2);
+  }
 }
 
 let mouseX = 0, mouseY = 0;
@@ -716,13 +610,13 @@ function animate(now = performance.now()) {
   const scrollRange = Math.max(1, document.body.scrollHeight - window.innerHeight);
   const scrollProgress = scrollY / scrollRange;
 
-  if (!exploreState.enabled) {
+  if (exploreState.isTransitioning && exploreState.transition) {
+    updateTransition(now);
+  } else if (exploreState.enabled) {
+    maintainExploreLayout();
+  } else {
     updateHomeCamera(scrollProgress);
     updateFloatingPlanes();
-  } else if (exploreState.isTransitioning && exploreState.transition) {
-    updateExploreTransition(now);
-  } else {
-    maintainExploreLayout(now);
   }
 
   updateBackgroundGeometries();
@@ -732,5 +626,5 @@ function animate(now = performance.now()) {
 }
 
 init();
-setupUIBindings();
+setupNavigation();
 animate();

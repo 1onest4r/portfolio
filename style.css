@@ -17,12 +17,15 @@ body[data-page="explore"] {
 
 .page-transition-cover {
   position: fixed;
-  inset: 0;
-  background: #000;
-  opacity: 0;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+  z-index: 9999;
   pointer-events: none;
-  z-index: 99;
-  transition: opacity 0.4s ease;
+  opacity: 0;
+  transition: opacity 0.4s ease-in-out;
 }
 
 .page-transition-cover.is-active {

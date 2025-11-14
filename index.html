@@ -5,14 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>3D Interactive Portfolio</title>
 </head>
-<body data-page="home">
+<body>
   <div id="canvas-container"></div>
   
-  <div class="content">
+  <!-- Home Page Content -->
+  <div class="content" data-page="home">
     <section>
       <h1>Creative Developer</h1>
       <p>Crafting immersive digital experiences through code and creativity</p>
-      <button class="cta-button" data-action="explore">Explore Work</button>
+      <button class="cta-button" data-navigate="explore">Explore Work</button>
       <div class="scroll-indicator">↓ Scroll to discover</div>
     </section>
 
@@ -39,6 +40,15 @@
       <p>Ready to create something amazing together?</p>
       <button class="cta-button">Get In Touch</button>
     </section>
+  </div>
+
+  <!-- Explore Page Content (Initially Hidden) -->
+  <div class="explore-overlay" data-page="explore" style="display: none;">
+    <header class="explore-header">
+      <button class="cta-button back-button" data-navigate="home">Back Home</button>
+      <h1>Explore Work</h1>
+    </header>
+    <p class="explore-instructions">Scroll or use arrow keys to cycle through projects. The lineup loops seamlessly.</p>
   </div>
 
   <script type="module" src="/main.js"></script>
