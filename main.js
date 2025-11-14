@@ -29,27 +29,50 @@ const tmpVec3A = new THREE.Vector3();
 const tmpVec3B = new THREE.Vector3();
 const tmpVec3C = new THREE.Vector3();
 
-// Portfolio works
 const portfolioWorks = [
   {
     title: "Project Alpha",
     description: "Interactive 3D Experience",
-    image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&h=600&fit=crop"
+    image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&h=600&fit=crop",
+    fullDescription: "A cutting-edge 3D interactive experience that showcases advanced WebGL rendering techniques. This project demonstrates real-time particle systems, dynamic lighting, and complex mesh animations.",
+    technologies: [
+      { name: "WebGL 2.0", difficulty: "advanced", score: "9/10" },
+      { name: "GLSL Shaders", difficulty: "advanced", score: "9/10" },
+      { name: "Three.js", difficulty: "intermediate", score: "7/10" }
+    ]
   },
   {
     title: "Project Beta", 
     description: "WebGL Animation Showcase",
-    image: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800&h=600&fit=crop"
+    image: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800&h=600&fit=crop",
+    fullDescription: "A comprehensive animation showcase featuring smooth transitions, morphing geometries, and fluid motion graphics. Optimized for performance across different devices.",
+    technologies: [
+      { name: "Three.js", difficulty: "intermediate", score: "8/10" },
+      { name: "GSAP", difficulty: "intermediate", score: "7/10" },
+      { name: "Canvas API", difficulty: "intermediate", score: "7/10" }
+    ]
   },
   {
     title: "Project Gamma",
     description: "Immersive Storytelling",
-    image: "https://images.unsplash.com/photo-1618556450994-a6a128ef0d9d?w=800&h=600&fit=crop"
+    image: "https://images.unsplash.com/photo-1618556450994-a6a128ef0d9d?w=800&h=600&fit=crop",
+    fullDescription: "An immersive narrative experience combining 3D graphics with interactive storytelling. Users navigate through a richly detailed virtual environment with branching narratives.",
+    technologies: [
+      { name: "Babylon.js", difficulty: "intermediate", score: "8/10" },
+      { name: "Game Physics", difficulty: "advanced", score: "8/10" },
+      { name: "State Management", difficulty: "advanced", score: "8/10" }
+    ]
   },
   {
     title: "Project Delta",
     description: "Digital Art Installation",
-    image: "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?w=800&h=600&fit=crop"
+    image: "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?w=800&h=600&fit=crop",
+    fullDescription: "A generative art installation that creates unique visual outputs based on real-time data inputs. Features algorithmic design patterns and dynamic color manipulation.",
+    technologies: [
+      { name: "Generative Art", difficulty: "advanced", score: "9/10" },
+      { name: "Data Visualization", difficulty: "intermediate", score: "8/10" },
+      { name: "WebGL", difficulty: "advanced", score: "8/10" }
+    ]
   }
 ];
 
@@ -99,6 +122,45 @@ function createPlaceholderTexture(work) {
   return new THREE.CanvasTexture(canvas);
 }
 
+function getDifficultyClass(difficulty) {
+  switch(difficulty) {
+    case 'beginner': return 'difficulty-beginner';
+    case 'intermediate': return 'difficulty-intermediate';
+    case 'advanced': return 'difficulty-advanced';
+    default: return '';
+  }
+}
+
+// REPLACE the openProjectModal function in main.js with this:
+
+function openProjectModal(projectIndex) {
+  const work = portfolioWorks[projectIndex];
+  if (!work || work.placeholder) return;
+
+  const modal = document.getElementById('cardModal');
+  if (!modal) return;
+
+  const modalImage = modal.querySelector('.modal-image');
+  const modalTitle = modal.querySelector('h2');
+  const modalDescription = modal.querySelector('.modal-description');
+  const techTableBody = modal.querySelector('tbody');
+
+  modalImage.src = work.image;
+  modalImage.alt = work.title;
+  modalTitle.textContent = work.title;
+  modalDescription.textContent = work.fullDescription;
+
+  techTableBody.innerHTML = work.technologies.map(tech => `
+    <tr>
+      <td>${tech.name}</td>
+      <td><span class="difficulty-badge ${getDifficultyClass(tech.difficulty)}">${tech.difficulty}</span></td>
+      <td>${tech.score}</td>
+    </tr>
+  `).join('');
+
+  modal.classList.add('active');
+}
+
 function init() {
   scene = new THREE.Scene();
   
@@ -110,7 +172,6 @@ function init() {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-  // Create floating geometric shapes
   const shapes = [
     new THREE.OctahedronGeometry(0.6),
     new THREE.IcosahedronGeometry(0.5),
@@ -143,10 +204,8 @@ function init() {
     geometries.push(mesh);
   }
 
-  // Create image planes
   createImagePlanes();
 
-  // Create particle system
   const particlesGeometry = new THREE.BufferGeometry();
   const particlesCount = 8000;
   const positions = new Float32Array(particlesCount * 3);
@@ -166,7 +225,6 @@ function init() {
   particles = new THREE.Points(particlesGeometry, particlesMaterial);
   scene.add(particles);
 
-  // Lighting
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
   scene.add(ambientLight);
 
@@ -251,9 +309,10 @@ function setupInteraction() {
     if (intersects.length > 0) {
       const clickedPlane = intersects[0].object;
       const work = clickedPlane.userData.work;
+      const index = clickedPlane.userData.index;
 
-      if (work && work.link && !work.placeholder) {
-        window.location.href = work.link;
+      if (work && !work.placeholder && work.fullDescription) {
+        openProjectModal(index);
       }
     }
   }
@@ -281,10 +340,6 @@ function setupInteraction() {
   window.addEventListener('mousemove', onMouseMove);
 }
 
-// ============================================
-// SPA NAVIGATION SYSTEM
-// ============================================
-
 function navigateTo(page) {
   if (exploreState.isTransitioning) return;
   if (currentPage === page) return;
@@ -303,7 +358,6 @@ function transitionToExplore() {
   exploreState.lastDirection = 0;
   currentPage = 'explore';
 
-  // Update DOM
   document.querySelector('[data-page="home"]').style.display = 'none';
   document.querySelector('[data-page="explore"]').style.display = 'block';
   document.body.style.overflow = 'hidden';
@@ -326,7 +380,6 @@ function transitionToExplore() {
     plane.userData.transitionStartOpacity = plane.material.opacity;
   });
 
-  // Setup wheel and keyboard for explore mode
   window.addEventListener('wheel', handleExploreWheel, { passive: false });
   window.addEventListener('keydown', handleExploreKeydown);
 }
@@ -336,7 +389,6 @@ function transitionToHome() {
   exploreState.isTransitioning = true;
   currentPage = 'home';
 
-  // Update DOM
   document.querySelector('[data-page="explore"]').style.display = 'none';
   document.querySelector('[data-page="home"]').style.display = 'block';
   document.body.style.overflow = '';
@@ -356,7 +408,6 @@ function transitionToHome() {
     plane.userData.transitionStartOpacity = plane.material.opacity;
   });
 
-  // Remove explore event listeners
   window.removeEventListener('wheel', handleExploreWheel);
   window.removeEventListener('keydown', handleExploreKeydown);
 }
@@ -370,10 +421,6 @@ function setupNavigation() {
     });
   });
 }
-
-// ============================================
-// EXPLORE MODE FUNCTIONS
-// ============================================
 
 function prepareExploreLayout() {
   if (imagePlanes.length === 0) return;
@@ -433,7 +480,6 @@ function updateTransition(now) {
   const eased = easeInOutCubic(progress);
 
   if (transition.toHome) {
-    // Transitioning back to home
     const targetPos = new THREE.Vector3(0, 0, 5);
     camera.position.copy(tmpVec3A.copy(transition.fromCameraPosition).lerp(targetPos, eased));
     camera.lookAt(0, 0, 0);
@@ -450,7 +496,6 @@ function updateTransition(now) {
       plane.material.needsUpdate = true;
     });
   } else {
-    // Transitioning to explore
     camera.position.copy(tmpVec3A.copy(transition.fromCameraPosition).lerp(exploreState.cameraPosition, eased));
     camera.lookAt(exploreState.cameraLookAt);
 
@@ -526,10 +571,6 @@ function handleExploreKeydown(event) {
   }
 }
 
-// ============================================
-// HOME MODE FUNCTIONS
-// ============================================
-
 function updateHomeCamera(scrollProgress) {
   camera.position.z = 5 - scrollProgress * 10;
   camera.position.y = scrollProgress * 3;
@@ -557,10 +598,6 @@ function updateFloatingPlanes() {
     }
   });
 }
-
-// ============================================
-// SHARED UPDATE FUNCTIONS
-// ============================================
 
 function updateBackgroundGeometries() {
   geometries.forEach(mesh => {
@@ -626,105 +663,114 @@ function animate(now = performance.now()) {
 }
 
 const cardData = {
-      graphics: {
-        title: "Graphics Programming",
-        description: "Specializing in high-performance 3D graphics rendering with WebGL and advanced shader programming. Create stunning visual effects, particle systems, and real-time rendering pipelines that push the boundaries of web-based graphics.",
-        tech: [
-          { name: "WebGL 2.0", difficulty: "advanced", score: "9/10" },
-          { name: "GLSL Shaders", difficulty: "advanced", score: "9/10" },
-          { name: "Three.js", difficulty: "intermediate", score: "7/10" }
-        ],
-        links: [
-          { text: "View Project Alpha", href: "/project-alpha" },
-          { text: "View Project Beta", href: "/project-beta" }
-        ]
-      },
-      game: {
-        title: "Game Developer",
-        description: "Create engaging game mechanics and interactive experiences using modern game engines and frameworks. From physics simulations to player controls and AI systems, bringing interactive entertainment to life.",
-        tech: [
-          { name: "Babylon.js", difficulty: "intermediate", score: "8/10" },
-          { name: "Game Physics", difficulty: "advanced", score: "8/10" },
-          { name: "Animation", difficulty: "intermediate", score: "7/10" }
-        ],
-        links: [
-          { text: "View Project Gamma", href: "/project-gamma" },
-          { text: "View Project Delta", href: "/project-delta" }
-        ]
-      },
-      backend: {
-        title: "Back-end Driven Programs",
-        description: "Building robust server-side applications and real-time data synchronization systems. Seamlessly integrate frontend experiences with powerful backend infrastructure for scalable, production-grade applications.",
-        tech: [
-          { name: "Node.js", difficulty: "intermediate", score: "7/10" },
-          { name: "Database Design", difficulty: "advanced", score: "8/10" },
-          { name: "API Architecture", difficulty: "intermediate", score: "7/10" }
-        ],
-        links: [
-          { text: "View Case Study", href: "/case-study-backend" },
-          { text: "GitHub Repository", href: "https://github.com" }
-        ]
-      }
-    };
+  graphics: {
+    title: "Graphics Programming",
+    description: "Specializing in high-performance 3D graphics rendering with WebGL and advanced shader programming. Create stunning visual effects, particle systems, and real-time rendering pipelines that push the boundaries of web-based graphics.",
+    tech: [
+      { name: "WebGL 2.0", difficulty: "advanced", score: "9/10" },
+      { name: "GLSL Shaders", difficulty: "advanced", score: "9/10" },
+      { name: "Three.js", difficulty: "intermediate", score: "7/10" }
+    ],
+    links: [
+      { text: "View Project Alpha", href: "/project-alpha" },
+      { text: "View Project Beta", href: "/project-beta" }
+    ]
+  },
+  game: {
+    title: "Game Developer",
+    description: "Create engaging game mechanics and interactive experiences using modern game engines and frameworks. From physics simulations to player controls and AI systems, bringing interactive entertainment to life.",
+    tech: [
+      { name: "Babylon.js", difficulty: "intermediate", score: "8/10" },
+      { name: "Game Physics", difficulty: "advanced", score: "8/10" },
+      { name: "Animation", difficulty: "intermediate", score: "7/10" }
+    ],
+    links: [
+      { text: "View Project Gamma", href: "/project-gamma" },
+      { text: "View Project Delta", href: "/project-delta" }
+    ]
+  },
+  backend: {
+    title: "Back-end Driven Programs",
+    description: "Building robust server-side applications and real-time data synchronization systems. Seamlessly integrate frontend experiences with powerful backend infrastructure for scalable, production-grade applications.",
+    tech: [
+      { name: "Node.js", difficulty: "intermediate", score: "7/10" },
+      { name: "Database Design", difficulty: "advanced", score: "8/10" },
+      { name: "API Architecture", difficulty: "intermediate", score: "7/10" }
+    ],
+    links: [
+      { text: "View Case Study", href: "/case-study-backend" },
+      { text: "GitHub Repository", href: "https://github.com" }
+    ]
+  }
+};
 
-    // Modal functionality
-    const modal = document.getElementById('cardModal');
-    const modalClose = document.getElementById('modalClose');
-    const cards = document.querySelectorAll('.project-card');
+const modal = document.getElementById('cardModal');
+const modalClose = modal.querySelector('.modal-close');
+const cards = document.querySelectorAll('.project-card');
 
-    function getDifficultyClass(difficulty) {
-      switch(difficulty) {
-        case 'beginner': return 'difficulty-beginner';
-        case 'intermediate': return 'difficulty-intermediate';
-        case 'advanced': return 'difficulty-advanced';
-        default: return '';
-      }
-    }
+function openModal(cardKey) {
+  const data = cardData[cardKey];
+  
+  const modalTitle = modal.querySelector('h2');
+  const modalDescription = modal.querySelector('.modal-description');
+  const tbody = modal.querySelector('tbody');
+  
+  modalTitle.textContent = data.title;
+  modalDescription.textContent = data.description;
+  
+  tbody.innerHTML = data.tech.map(tech => `
+    <tr>
+      <td>${tech.name}</td>
+      <td><span class="difficulty-badge ${getDifficultyClass(tech.difficulty)}">${tech.difficulty}</span></td>
+      <td>${tech.score}</td>
+    </tr>
+  `).join('');
+  
+  modal.classList.add('active');
+}
 
-    function openModal(cardKey) {
-      const data = cardData[cardKey];
-      
-      document.getElementById('modalTitle').textContent = data.title;
-      document.getElementById('modalDescription').textContent = data.description;
-      
-      const tbody = document.getElementById('techTableBody');
-      tbody.innerHTML = data.tech.map(tech => `
-        <tr>
-          <td>${tech.name}</td>
-          <td><span class="difficulty-badge ${getDifficultyClass(tech.difficulty)}">${tech.difficulty}</span></td>
-          <td>${tech.score}</td>
-        </tr>
-      `).join('');
-      
-      const linksContainer = document.getElementById('modalLinks');
-      linksContainer.innerHTML = data.links.map(link => `
-        <a href="${link.href}" class="modal-link">${link.text}</a>
-      `).join('');
-      
-      modal.classList.add('active');
-    }
+function closeModal() {
+  modal.classList.remove('active');
+}
 
-    function closeModal() {
-      modal.classList.remove('active');
-    }
+cards.forEach(card => {
+  card.addEventListener('click', () => {
+    const cardKey = card.getAttribute('data-card');
+    openModal(cardKey);
+  });
+});
 
-    cards.forEach(card => {
-      card.addEventListener('click', () => {
-        const cardKey = card.getAttribute('data-card');
-        openModal(cardKey);
-      });
-    });
+modalClose.addEventListener('click', closeModal);
+modal.addEventListener('click', (e) => {
+  if (e.target === modal) closeModal();
+});
 
-    modalClose.addEventListener('click', closeModal);
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) closeModal();
-    });
-
-    // Prevent modal close on content click
-    document.querySelector('.modal-content').addEventListener('click', (e) => {
-      e.stopPropagation();
-    });
+const modalContent = modal.querySelector('.modal-content');
+if (modalContent) {
+  modalContent.addEventListener('click', (e) => {
+    e.stopPropagation();
+  });
+}
 
 init();
 setupNavigation();
 animate();
+
+// Project Modal Event Listeners
+const projectModal = document.getElementById('cardModal');
+const projectModalClose = projectModal.querySelector('.modal-close');
+const projectModalContent = projectModal.querySelector('.modal-content');
+
+projectModalClose.addEventListener('click', () => {
+  projectModal.classList.remove('active');
+});
+
+projectModal.addEventListener('click', (e) => {
+  if (e.target === projectModal) {
+    projectModal.classList.remove('active');
+  }
+});
+
+projectModalContent.addEventListener('click', (e) => {
+  e.stopPropagation();
+});

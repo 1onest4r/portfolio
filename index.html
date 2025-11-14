@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>3D Interactive Portfolio</title>
 </head>
-<div id="canvas-container"></div>
+<body>
+  <div id="canvas-container"></div>
   
   <div class="scroll-indicator">↓ Scroll to discover</div>
   <div class="content" data-page="home">
@@ -40,25 +41,27 @@
     </section>
   </div>
 
-  <!-- Modal -->
-  <div class="modal-overlay" id="cardModal">
-    <div class="modal-content">
-      <button class="modal-close" id="modalClose">×</button>
-      <h2 id="modalTitle"></h2>
-      <p class="modal-description" id="modalDescription"></p>
-      <table class="tech-table" id="techTable">
-        <thead>
-          <tr>
-            <th>Technology</th>
-            <th>Difficulty</th>
-            <th>Complexity Score</th>
-          </tr>
-        </thead>
-        <tbody id="techTableBody"></tbody>
-      </table>
-      <div class="modal-links" id="modalLinks"></div>
-    </div>
+  <!-- Modal for Explore Work (Planes) -->
+  <!-- Modal for Explore Work (Planes) - REPLACE in your index.html -->
+<div class="modal-overlay" id="cardModal">
+  <div class="modal-content">
+    <button class="modal-close">×</button>
+    <img class="modal-image" src="" alt="Project">
+    <h2></h2>
+    <p class="modal-description"></p>
+    <h3>Technologies Used</h3>
+    <table class="tech-table">
+      <thead>
+        <tr>
+          <th>Technology</th>
+          <th>Difficulty</th>
+          <th>Complexity</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </div>
+</div>
 
   <div class="explore-overlay" data-page="explore" id="exploreOverlay">
     <header class="explore-header">
@@ -67,7 +70,6 @@
     </header>
     <p class="explore-instructions">Scroll or use arrow keys to cycle through projects. The lineup loops seamlessly.</p>
   </div>
-
 
   <script type="module" src="/main.js"></script>
 </body>
