@@ -6,6 +6,7 @@ const geometries = [];
 const imagePlanes = [];
 let currentSection = 0;
 let currentPage = 'home';
+let expandedCard = null;
 
 const exploreState = {
   enabled: false,
@@ -85,6 +86,48 @@ const placeholderColors = [
   '#2b2d42'
 ];
 
+const cardData = {
+  graphics: {
+    title: "Graphics Programming",
+    description: "Specializing in high-performance 3D graphics rendering with WebGL and advanced shader programming. Create stunning visual effects, particle systems, and real-time rendering pipelines that push the boundaries of web-based graphics.",
+    tech: [
+      { name: "WebGL 2.0", difficulty: "advanced", score: "9/10" },
+      { name: "GLSL Shaders", difficulty: "advanced", score: "9/10" },
+      { name: "Three.js", difficulty: "intermediate", score: "7/10" }
+    ],
+    links: [
+      { text: "View Project Alpha", href: "/project-alpha" },
+      { text: "View Project Beta", href: "/project-beta" }
+    ]
+  },
+  game: {
+    title: "Game Developer",
+    description: "Create engaging game mechanics and interactive experiences using modern game engines and frameworks. From physics simulations to player controls and AI systems, bringing interactive entertainment to life.",
+    tech: [
+      { name: "Babylon.js", difficulty: "intermediate", score: "8/10" },
+      { name: "Game Physics", difficulty: "advanced", score: "8/10" },
+      { name: "Animation", difficulty: "intermediate", score: "7/10" }
+    ],
+    links: [
+      { text: "View Project Gamma", href: "/project-gamma" },
+      { text: "View Project Delta", href: "/project-delta" }
+    ]
+  },
+  backend: {
+    title: "Back-end Driven Programs",
+    description: "Building robust server-side applications and real-time data synchronization systems. Seamlessly integrate frontend experiences with powerful backend infrastructure for scalable, production-grade applications.",
+    tech: [
+      { name: "Node.js", difficulty: "intermediate", score: "7/10" },
+      { name: "Database Design", difficulty: "advanced", score: "8/10" },
+      { name: "API Architecture", difficulty: "intermediate", score: "7/10" }
+    ],
+    links: [
+      { text: "View Case Study", href: "/case-study-backend" },
+      { text: "GitHub Repository", href: "https://github.com" }
+    ]
+  }
+};
+
 function ensurePlaceholderWorks() {
   if (portfolioWorks.length >= MIN_PLANE_COUNT) return;
 
@@ -131,8 +174,7 @@ function getDifficultyClass(difficulty) {
   }
 }
 
-// REPLACE the openProjectModal function in main.js with this:
-
+// EXPLORE WORK PLANES MODAL (for 3D planes)
 function openProjectModal(projectIndex) {
   const work = portfolioWorks[projectIndex];
   if (!work || work.placeholder) return;
@@ -662,115 +704,106 @@ function animate(now = performance.now()) {
   renderer.render(scene, camera);
 }
 
-const cardData = {
-  graphics: {
-    title: "Graphics Programming",
-    description: "Specializing in high-performance 3D graphics rendering with WebGL and advanced shader programming. Create stunning visual effects, particle systems, and real-time rendering pipelines that push the boundaries of web-based graphics.",
-    tech: [
-      { name: "WebGL 2.0", difficulty: "advanced", score: "9/10" },
-      { name: "GLSL Shaders", difficulty: "advanced", score: "9/10" },
-      { name: "Three.js", difficulty: "intermediate", score: "7/10" }
-    ],
-    links: [
-      { text: "View Project Alpha", href: "/project-alpha" },
-      { text: "View Project Beta", href: "/project-beta" }
-    ]
-  },
-  game: {
-    title: "Game Developer",
-    description: "Create engaging game mechanics and interactive experiences using modern game engines and frameworks. From physics simulations to player controls and AI systems, bringing interactive entertainment to life.",
-    tech: [
-      { name: "Babylon.js", difficulty: "intermediate", score: "8/10" },
-      { name: "Game Physics", difficulty: "advanced", score: "8/10" },
-      { name: "Animation", difficulty: "intermediate", score: "7/10" }
-    ],
-    links: [
-      { text: "View Project Gamma", href: "/project-gamma" },
-      { text: "View Project Delta", href: "/project-delta" }
-    ]
-  },
-  backend: {
-    title: "Back-end Driven Programs",
-    description: "Building robust server-side applications and real-time data synchronization systems. Seamlessly integrate frontend experiences with powerful backend infrastructure for scalable, production-grade applications.",
-    tech: [
-      { name: "Node.js", difficulty: "intermediate", score: "7/10" },
-      { name: "Database Design", difficulty: "advanced", score: "8/10" },
-      { name: "API Architecture", difficulty: "intermediate", score: "7/10" }
-    ],
-    links: [
-      { text: "View Case Study", href: "/case-study-backend" },
-      { text: "GitHub Repository", href: "https://github.com" }
-    ]
+// ===== VISION CARDS EXPANSION (inline expansion) =====
+function expandVisionCard(cardElement, cardKey) {
+  if (expandedCard === cardElement) {
+    collapseVisionCard();
+    return;
   }
-};
 
-const modal = document.getElementById('cardModal');
-const modalClose = modal.querySelector('.modal-close');
-const cards = document.querySelectorAll('.project-card');
+  if (expandedCard) {
+    collapseVisionCard();
+  }
 
-function openModal(cardKey) {
   const data = cardData[cardKey];
-  
-  const modalTitle = modal.querySelector('h2');
-  const modalDescription = modal.querySelector('.modal-description');
-  const tbody = modal.querySelector('tbody');
-  
-  modalTitle.textContent = data.title;
-  modalDescription.textContent = data.description;
-  
-  tbody.innerHTML = data.tech.map(tech => `
-    <tr>
-      <td>${tech.name}</td>
-      <td><span class="difficulty-badge ${getDifficultyClass(tech.difficulty)}">${tech.difficulty}</span></td>
-      <td>${tech.score}</td>
-    </tr>
-  `).join('');
-  
-  modal.classList.add('active');
+  if (!data) return;
+
+  expandedCard = cardElement;
+  cardElement.classList.add('expanded');
+
+  let techRows = '';
+  data.tech.forEach(tech => {
+    const diffClass = 'difficulty-' + tech.difficulty;
+    techRows += `<tr><td>${tech.name}</td><td><span class="difficulty-badge ${diffClass}">${tech.difficulty}</span></td><td>${tech.score}</td></tr>`;
+  });
+
+  let links = '';
+  data.links.forEach(link => {
+    links += `<a href="${link.href}" class="card-link">→ ${link.text}</a>`;
+  });
+
+  const html = `
+    <div class="card-expanded-content">
+      <p>${data.description}</p>
+      <h4>Technologies</h4>
+      <table class="card-tech-table">
+        <thead>
+          <tr><th>Tech</th><th>Level</th><th>Score</th></tr>
+        </thead>
+        <tbody>${techRows}</tbody>
+      </table>
+      <div class="card-links">${links}</div>
+    </div>
+  `;
+
+  cardElement.innerHTML += html;
+  setTimeout(() => {
+    cardElement.querySelector('.card-expanded-content').classList.add('show');
+  }, 10);
 }
 
-function closeModal() {
-  modal.classList.remove('active');
+function collapseVisionCard() {
+  if (!expandedCard) return;
+  
+  const content = expandedCard.querySelector('.card-expanded-content');
+  if (content) {
+    content.classList.remove('show');
+    setTimeout(() => content.remove(), 300);
+  }
+  
+  expandedCard.classList.remove('expanded');
+  expandedCard = null;
 }
 
-cards.forEach(card => {
-  card.addEventListener('click', () => {
-    const cardKey = card.getAttribute('data-card');
-    openModal(cardKey);
+function setupVisionCards() {
+  document.querySelectorAll('.project-card').forEach(card => {
+    card.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const key = card.getAttribute('data-card');
+      expandVisionCard(card, key);
+    });
   });
-});
 
-modalClose.addEventListener('click', closeModal);
-modal.addEventListener('click', (e) => {
-  if (e.target === modal) closeModal();
-});
-
-const modalContent = modal.querySelector('.modal-content');
-if (modalContent) {
-  modalContent.addEventListener('click', (e) => {
-    e.stopPropagation();
+  document.addEventListener('click', () => {
+    if (expandedCard) collapseVisionCard();
   });
+}
+
+// ===== MODAL FOR EXPLORE PLANES =====
+function setupExploreModal() {
+  const modal = document.getElementById('cardModal');
+  const modalClose = modal.querySelector('.modal-close');
+
+  modalClose.addEventListener('click', () => {
+    modal.classList.remove('active');
+  });
+
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.classList.remove('active');
+    }
+  });
+
+  const modalContent = modal.querySelector('.modal-content');
+  if (modalContent) {
+    modalContent.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+  }
 }
 
 init();
 setupNavigation();
+setupVisionCards();
+setupExploreModal();
 animate();
-
-// Project Modal Event Listeners
-const projectModal = document.getElementById('cardModal');
-const projectModalClose = projectModal.querySelector('.modal-close');
-const projectModalContent = projectModal.querySelector('.modal-content');
-
-projectModalClose.addEventListener('click', () => {
-  projectModal.classList.remove('active');
-});
-
-projectModal.addEventListener('click', (e) => {
-  if (e.target === projectModal) {
-    projectModal.classList.remove('active');
-  }
-});
-
-projectModalContent.addEventListener('click', (e) => {
-  e.stopPropagation();
-});
