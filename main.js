@@ -625,6 +625,8 @@ function animate(now = performance.now()) {
   renderer.render(scene, camera);
 }
 
+
+
 init();
 setupNavigation();
 animate();
