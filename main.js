@@ -625,7 +625,105 @@ function animate(now = performance.now()) {
   renderer.render(scene, camera);
 }
 
+const cardData = {
+      graphics: {
+        title: "Graphics Programming",
+        description: "Specializing in high-performance 3D graphics rendering with WebGL and advanced shader programming. Create stunning visual effects, particle systems, and real-time rendering pipelines that push the boundaries of web-based graphics.",
+        tech: [
+          { name: "WebGL 2.0", difficulty: "advanced", score: "9/10" },
+          { name: "GLSL Shaders", difficulty: "advanced", score: "9/10" },
+          { name: "Three.js", difficulty: "intermediate", score: "7/10" }
+        ],
+        links: [
+          { text: "View Project Alpha", href: "/project-alpha" },
+          { text: "View Project Beta", href: "/project-beta" }
+        ]
+      },
+      game: {
+        title: "Game Developer",
+        description: "Create engaging game mechanics and interactive experiences using modern game engines and frameworks. From physics simulations to player controls and AI systems, bringing interactive entertainment to life.",
+        tech: [
+          { name: "Babylon.js", difficulty: "intermediate", score: "8/10" },
+          { name: "Game Physics", difficulty: "advanced", score: "8/10" },
+          { name: "Animation", difficulty: "intermediate", score: "7/10" }
+        ],
+        links: [
+          { text: "View Project Gamma", href: "/project-gamma" },
+          { text: "View Project Delta", href: "/project-delta" }
+        ]
+      },
+      backend: {
+        title: "Back-end Driven Programs",
+        description: "Building robust server-side applications and real-time data synchronization systems. Seamlessly integrate frontend experiences with powerful backend infrastructure for scalable, production-grade applications.",
+        tech: [
+          { name: "Node.js", difficulty: "intermediate", score: "7/10" },
+          { name: "Database Design", difficulty: "advanced", score: "8/10" },
+          { name: "API Architecture", difficulty: "intermediate", score: "7/10" }
+        ],
+        links: [
+          { text: "View Case Study", href: "/case-study-backend" },
+          { text: "GitHub Repository", href: "https://github.com" }
+        ]
+      }
+    };
 
+    // Modal functionality
+    const modal = document.getElementById('cardModal');
+    const modalClose = document.getElementById('modalClose');
+    const cards = document.querySelectorAll('.project-card');
+
+    function getDifficultyClass(difficulty) {
+      switch(difficulty) {
+        case 'beginner': return 'difficulty-beginner';
+        case 'intermediate': return 'difficulty-intermediate';
+        case 'advanced': return 'difficulty-advanced';
+        default: return '';
+      }
+    }
+
+    function openModal(cardKey) {
+      const data = cardData[cardKey];
+      
+      document.getElementById('modalTitle').textContent = data.title;
+      document.getElementById('modalDescription').textContent = data.description;
+      
+      const tbody = document.getElementById('techTableBody');
+      tbody.innerHTML = data.tech.map(tech => `
+        <tr>
+          <td>${tech.name}</td>
+          <td><span class="difficulty-badge ${getDifficultyClass(tech.difficulty)}">${tech.difficulty}</span></td>
+          <td>${tech.score}</td>
+        </tr>
+      `).join('');
+      
+      const linksContainer = document.getElementById('modalLinks');
+      linksContainer.innerHTML = data.links.map(link => `
+        <a href="${link.href}" class="modal-link">${link.text}</a>
+      `).join('');
+      
+      modal.classList.add('active');
+    }
+
+    function closeModal() {
+      modal.classList.remove('active');
+    }
+
+    cards.forEach(card => {
+      card.addEventListener('click', () => {
+        const cardKey = card.getAttribute('data-card');
+        openModal(cardKey);
+      });
+    });
+
+    modalClose.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+
+    // Prevent modal close on content click
+    document.querySelector('.modal-content').addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
 
 init();
 setupNavigation();

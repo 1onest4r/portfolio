@@ -5,10 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>3D Interactive Portfolio</title>
 </head>
-<body>
-  <div id="canvas-container"></div>
+<div id="canvas-container"></div>
   
-  <!-- Home Page Content -->
   <div class="scroll-indicator">↓ Scroll to discover</div>
   <div class="content" data-page="home">
     <section>
@@ -20,17 +18,17 @@
     <section>
       <h2>Vision</h2>
       <div class="project-grid">
-        <div class="project-card">
-          <h3>Graphics programming</h3>
-          <p>Interactive 3D experience</p>
+        <div class="project-card" data-card="graphics">
+          <h3>Graphics Programming</h3>
+          <p class="project-card-preview">Interactive 3D experience</p>
         </div>
-        <div class="project-card">
-          <h3>Game developer</h3>
-          <p>Game animation showcase</p>
+        <div class="project-card" data-card="game">
+          <h3>Game Developer</h3>
+          <p class="project-card-preview">Game animation showcase</p>
         </div>
-        <div class="project-card">
-          <h3>Back-end driven programs</h3>
-          <p>Immersive applications</p>
+        <div class="project-card" data-card="backend">
+          <h3>Back-end Driven Programs</h3>
+          <p class="project-card-preview">Immersive applications</p>
         </div>
       </div>
     </section>
@@ -42,14 +40,34 @@
     </section>
   </div>
 
-  <!-- Explore Page Content (Initially Hidden) -->
-  <div class="explore-overlay" data-page="explore" style="display: none;">
+  <!-- Modal -->
+  <div class="modal-overlay" id="cardModal">
+    <div class="modal-content">
+      <button class="modal-close" id="modalClose">×</button>
+      <h2 id="modalTitle"></h2>
+      <p class="modal-description" id="modalDescription"></p>
+      <table class="tech-table" id="techTable">
+        <thead>
+          <tr>
+            <th>Technology</th>
+            <th>Difficulty</th>
+            <th>Complexity Score</th>
+          </tr>
+        </thead>
+        <tbody id="techTableBody"></tbody>
+      </table>
+      <div class="modal-links" id="modalLinks"></div>
+    </div>
+  </div>
+
+  <div class="explore-overlay" data-page="explore" id="exploreOverlay">
     <header class="explore-header">
       <button class="cta-button back-button" data-navigate="home">Back Home</button>
       <h1>Explore Work</h1>
     </header>
     <p class="explore-instructions">Scroll or use arrow keys to cycle through projects. The lineup loops seamlessly.</p>
   </div>
+
 
   <script type="module" src="/main.js"></script>
 </body>
