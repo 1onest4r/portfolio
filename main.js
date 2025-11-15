@@ -32,14 +32,14 @@ const tmpVec3C = new THREE.Vector3();
 
 const portfolioWorks = [
   {
-    title: "Project Alpha",
-    description: "Interactive 3D Experience",
+    title: "Hackathon",
+    description: "Interactive Web Game Experience",
     image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&h=600&fit=crop",
-    fullDescription: "A cutting-edge 3D interactive experience that showcases advanced WebGL rendering techniques. This project demonstrates real-time particle systems, dynamic lighting, and complex mesh animations.",
+    fullDescription: "An website dedicated for boosting the efficiency of both teacher's and student's studying by playing a web game with prebuilt database with which ever topic that is suggested",
     technologies: [
-      { name: "WebGL 2.0", difficulty: "advanced", score: "9/10" },
-      { name: "GLSL Shaders", difficulty: "advanced", score: "9/10" },
-      { name: "Three.js", difficulty: "intermediate", score: "7/10" }
+      { name: "js", difficulty: "advanced", score: "9/10" },
+      { name: "API", difficulty: "advanced", score: "9/10" },
+      { name: "tailwind", difficulty: "intermediate", score: "7/10" }
     ]
   },
   {
@@ -117,13 +117,13 @@ const cardData = {
     title: "Back-end Driven Programs",
     description: "Building robust server-side applications and real-time data synchronization systems. Seamlessly integrate frontend experiences with powerful backend infrastructure for scalable, production-grade applications.",
     tech: [
-      { name: "Node.js", difficulty: "intermediate", score: "7/10" },
+      { name: "js", difficulty: "intermediate", score: "7/10" },
       { name: "Database Design", difficulty: "advanced", score: "8/10" },
       { name: "API Architecture", difficulty: "intermediate", score: "7/10" }
     ],
     links: [
-      { text: "View Case Study", href: "/case-study-backend" },
-      { text: "GitHub Repository", href: "https://github.com" }
+      { text: "View web project", href: "https://1onest4r.github.io/hackathon_2025/" },
+      { text: "GitHub Repository", href: "https://github.com/1onest4r" }
     ]
   }
 };
