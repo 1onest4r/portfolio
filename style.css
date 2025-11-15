@@ -139,7 +139,7 @@
     }
 
     /* Modal Styles */
-    .modal-overlay {
+    /* .modal-overlay {
       position: fixed;
       top: 0;
       left: 0;
@@ -181,8 +181,8 @@
         opacity: 1;
         transform: translateY(0);
       }
-    }
-
+    } */
+/* 
     .modal-close {
       position: absolute;
       top: 20px;
@@ -210,8 +210,8 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-    }
-
+    } */
+/* 
     .modal-description {
       font-size: 1rem;
       line-height: 1.6;
@@ -223,8 +223,8 @@
       width: 100%;
       margin-bottom: 30px;
       border-collapse: collapse;
-    }
-
+    } */
+/* 
     .tech-table th {
       background: rgba(255, 255, 255, 0.08);
       padding: 12px;
@@ -253,8 +253,8 @@
       font-size: 0.85rem;
       font-weight: bold;
       text-transform: uppercase;
-    }
-
+    } */
+/* 
     .difficulty-beginner {
       background: rgba(52, 211, 153, 0.2);
       color: #34d399;
@@ -308,7 +308,7 @@
     .modal-link::after {
       content: "→";
       font-weight: bold;
-    }
+    } */
 
     .explore-overlay {
       position: fixed;
@@ -383,7 +383,7 @@
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
+  width: 80%;
   height: 100%;
   background: rgba(0, 0, 0, 0.5);
   display: flex;
@@ -637,5 +637,3 @@
   background: rgba(255, 0, 110, 0.3);
   transform: translateX(3px);
 }
-
-/* ===== END CSS ===== */
